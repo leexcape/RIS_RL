@@ -20,7 +20,7 @@ parser.add_argument('--tau',  default=0.005, type=float) # target smoothing coef
 parser.add_argument('--target_update_interval', default=1, type=int)
 parser.add_argument('--test_iteration', default=10, type=int)
 
-parser.add_argument('--learning_rate', default=1e-5, type=float)
+parser.add_argument('--learning_rate', default=1e-6, type=float)
 parser.add_argument('--gamma', default=0.99, type=int) # discounted factor
 parser.add_argument('--capacity', default=1000000, type=int) # replay buffer size
 parser.add_argument('--batch_size', default=100, type=int) # mini batch size
@@ -52,7 +52,7 @@ if args.seed:
 # eng.warning('off', nargout=0)
 # env = eng.RIS_ENV
 
-state_dim = 20
+state_dim = 1280
 action_dim = 64
 max_action = math.pi
 min_action = -math.pi
@@ -65,12 +65,12 @@ if args.mode == 'test':
         # _, state = env(np.random.rand(action_dim), nargout=2)
         # state = np.array(state[0])
         large_scale_fading_a, large_scale_fading_b, p_t, hai, hbi, aoa, aod = environment.get_channel()
-        state = np.concatenate((aoa, aod), 0)[:, 0]
+        state = np.concatenate((hai.reshape(-1, 1), hbi.reshape(-1, 1)), 0)[:, 0]
         for t in count():
             action = agent.select_action(state)
             reward = environment.execute_channel(large_scale_fading_a, large_scale_fading_b, p_t, hai, hbi, action)
             large_scale_fading_a, large_scale_fading_b, p_t, hai, hbi, aoa, aod = environment.get_channel()
-            next_state = np.concatenate((aoa, aod), 0)[:, 0]
+            next_state = np.concatenate((hai.reshape(-1, 1), hbi.reshape(-1, 1)), 0)[:, 0]
             # reward, next_state = env(np.float32(action), nargout=2)
             # next_state = np.array(next_state[0])
             ep_r += reward
@@ -88,14 +88,14 @@ elif args.mode == 'train':
         total_reward = 0
         step = 0
         large_scale_fading_a, large_scale_fading_b, p_t, hai, hbi, aoa, aod = environment.get_channel()
-        state = np.concatenate((aoa, aod), 0)[:, 0]
+        state = np.concatenate((hai.reshape(-1, 1), hbi.reshape(-1, 1)), 0)[:, 0]
         for t in range(20):
             action = agent.select_action(state)
             action = (action + np.random.normal(0, args.exploration_noise, size=action_dim)).clip(
                 min_action, max_action)
             reward = environment.execute_channel(large_scale_fading_a, large_scale_fading_b, p_t, hai, hbi, action)
             large_scale_fading_a, large_scale_fading_b, p_t, hai, hbi, aoa, aod = environment.get_channel()
-            next_state = np.concatenate((aoa, aod), 0)[:, 0]
+            next_state = np.concatenate((hai.reshape(-1, 1), hbi.reshape(-1, 1)), 0)[:, 0]
             # reward, next_state = env(np.float32(action), nargout=2)
             # next_state = np.array(next_state[0])[0, :]
             # print('current reward: ', reward)
