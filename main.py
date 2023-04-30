@@ -6,7 +6,6 @@ import argparse
 import torch
 import numpy as np
 from itertools import count
-import matlab.engine
 import environment
 
 reload(DQN_model)
